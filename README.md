@@ -1,136 +1,188 @@
-# Projeto DSList - Intensivão Java Spring
+DSList is a backend project developed during the Spring Boot intensive course by Professor Nélio Alves. This project aims to list games, store them in a database, and provide an API for data queries and manipulation.
 
-**1. Perdeu alguma aula ou material de apoio?**
+Technologies Used
 
-Inscreva-se para receber no seu email:
+Java: Main language of the project.
 
-https://devsuperior.com.br
+Spring Boot: Framework for building Java applications.
 
-    ATENÇÃO: os conteúdos ficarão disponíveis somente até domingo. Então organize-se, e bora pra cima! 
+PostgreSQL: Database used for storage.
 
-**2. Tem alguma dúvida?**
+Docker: Tool for containerizing the database.
 
-Envie uma mensagem pra gente no email que chegou pra você no ato da sua inscrição.
+Postman: Tool for API testing.
 
-## Calendário
+Features
 
-Os conteúdos ficarão temporariamente disponíveis no nosso canal de eventos. Ative o lembrete:
+Listing games.
 
-https://www.youtube.com/@DevsuperiorJavaSpring
+Storing game information in the database.
 
-| Dia / horário  | Conteúdo |
-| ------------- | ------------- |
-| Segunda-feira 20h30 | Aula 1: Projeto estruturado |
-| Terça-feira 20h30  | Aula 2: Modelo de domínio |
-| Quarta-feira 20h30 | Aula 3: Deploy e caso de uso |
-| Quinta-feira 20h30 | Aula 4: Endpoint especial |
-| Sexta-feira 20h30 | Aula 5: Resumão e reforço do aprendizado |
-| Domingo 16h00 | Oficina: Avançando na modelagem de dados  |
+Querying games through REST endpoints.
 
-## Trechos de código
+Organizing games into lists.
 
-### Plug-in Maven
+How to Run the Project
 
-```xml
-<plugin>
-	<groupId>org.apache.maven.plugins</groupId>
-	<artifactId>maven-resources-plugin</artifactId>
-	<version>3.1.0</version> <!--$NO-MVN-MAN-VER$ -->
-</plugin>
-```
+Prerequisites
 
-### application.properties
+Before starting, make sure you have installed on your machine:
 
-```
-spring.profiles.active=${APP_PROFILE:test}
-spring.jpa.open-in-view=false
+Java JDK 17 or higher.
 
-cors.origins=${CORS_ORIGINS:http://localhost:5173,http://localhost:3000}
-```
+Maven for dependency management.
 
-### application-test.properties
+Docker to run the PostgreSQL database.
 
-```
-# H2 Connection
-spring.datasource.url=jdbc:h2:mem:testdb
-spring.datasource.username=sa
-spring.datasource.password=
+Postman or another tool for API testing (optional).
 
-# H2 Client
-spring.h2.console.enabled=true
-spring.h2.console.path=/h2-console
+Steps to Execute
 
-# Show SQL
-spring.jpa.show-sql=true
-spring.jpa.properties.hibernate.format_sql=true
-```
+Clone the repository:
 
-### WebConfig
+git clone https://github.com/DaviSilvaAguiar/dslist-springboot
+cd dslist
 
-```java
-@Configuration
-public class WebConfig {
+Start the PostgreSQL database using Docker:
 
-	@Value("${cors.origins}")
-	private String corsOrigins;
-	
-	@Bean
-	public WebMvcConfigurer corsConfigurer() {
-		return new WebMvcConfigurer() {
-			@Override
-			public void addCorsMappings(CorsRegistry registry) {
-				registry.addMapping("/**").allowedMethods("*").allowedOrigins(corsOrigins);
-			}
-		};
-	}
-	
-}
-```
+docker run --name dslist-postgres -e POSTGRES_USER=your_user -e POSTGRES_PASSWORD=your_password -e POSTGRES_DB=dslist -p 5432:5432 -d postgres
 
-### GameListRepository
+Configure the application.properties file:
+In the src/main/resources directory, set the PostgreSQL credentials:
 
-```java
-@Query(nativeQuery = true, value = """
-	SELECT tb_game.id, tb_game.title, tb_game.game_year AS `year`, tb_game.img_url AS imgUrl, 
-	tb_game.short_description AS shortDescription, tb_belonging.position
-	FROM tb_game
-	INNER JOIN tb_belonging ON tb_game.id = tb_belonging.game_id
-	WHERE tb_belonging.list_id = :listId
-	ORDER BY tb_belonging.position
-		""")
-List<GameMinProjection> searchGameList(Long listId);
+spring.datasource.url=jdbc:postgresql://localhost:5432/dslist
+spring.datasource.username=your_user
+spring.datasource.password=your_password
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
 
-@Modifying
-@Query(nativeQuery = true, value = "UPDATE tb_belonging SET position = :newPosition WHERE list_id = :listId AND game_id = :gameId")
-void updateBelongingPosition(Long listId, Long gameId, Integer newPosition);
-```
+Build and run the project:
 
-### import.sql
+./mvnw spring-boot:run
 
-```sql
-INSERT INTO tb_game_list (name) VALUES ('Aventura e RPG');
-INSERT INTO tb_game_list (name) VALUES ('Jogos de plataforma');
+Test the API endpoints:
+Use Postman or another tool to send requests to the project endpoints.
 
-INSERT INTO tb_game (title, score, game_year, genre, platforms, img_url, short_description, long_description) VALUES ('Mass Effect Trilogy', 4.8, 2012, 'Role-playing (RPG), Shooter', 'XBox, Playstation, PC', 'https://raw.githubusercontent.com/devsuperior/java-spring-dslist/main/resources/1.png', 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Odit esse officiis corrupti unde repellat non quibusdam! Id nihil itaque ipsum!', 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Delectus dolorum illum placeat eligendi, quis maiores veniam. Incidunt dolorum, nisi deleniti dicta odit voluptatem nam provident temporibus reprehenderit blanditiis consectetur tenetur. Dignissimos blanditiis quod corporis iste, aliquid perspiciatis architecto quasi tempore ipsam voluptates ea ad distinctio, sapiente qui, amet quidem culpa.');
-INSERT INTO tb_game (title, score, game_year, genre, platforms, img_url, short_description, long_description) VALUES ('Red Dead Redemption 2', 4.7, 2018, 'Role-playing (RPG), Adventure', 'XBox, Playstation, PC', 'https://raw.githubusercontent.com/devsuperior/java-spring-dslist/main/resources/2.png', 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Odit esse officiis corrupti unde repellat non quibusdam! Id nihil itaque ipsum!', 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Delectus dolorum illum placeat eligendi, quis maiores veniam. Incidunt dolorum, nisi deleniti dicta odit voluptatem nam provident temporibus reprehenderit blanditiis consectetur tenetur. Dignissimos blanditiis quod corporis iste, aliquid perspiciatis architecto quasi tempore ipsam voluptates ea ad distinctio, sapiente qui, amet quidem culpa.');
-INSERT INTO tb_game (title, score, game_year, genre, platforms, img_url, short_description, long_description) VALUES ('The Witcher 3: Wild Hunt', 4.7, 2014, 'Role-playing (RPG), Adventure', 'XBox, Playstation, PC', 'https://raw.githubusercontent.com/devsuperior/java-spring-dslist/main/resources/3.png', 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Odit esse officiis corrupti unde repellat non quibusdam! Id nihil itaque ipsum!', 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Delectus dolorum illum placeat eligendi, quis maiores veniam. Incidunt dolorum, nisi deleniti dicta odit voluptatem nam provident temporibus reprehenderit blanditiis consectetur tenetur. Dignissimos blanditiis quod corporis iste, aliquid perspiciatis architecto quasi tempore ipsam voluptates ea ad distinctio, sapiente qui, amet quidem culpa.');
-INSERT INTO tb_game (title, score, game_year, genre, platforms, img_url, short_description, long_description) VALUES ('Sekiro: Shadows Die Twice', 3.8, 2019, 'Role-playing (RPG), Adventure', 'XBox, Playstation, PC', 'https://raw.githubusercontent.com/devsuperior/java-spring-dslist/main/resources/4.png', 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Odit esse officiis corrupti unde repellat non quibusdam! Id nihil itaque ipsum!', 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Delectus dolorum illum placeat eligendi, quis maiores veniam. Incidunt dolorum, nisi deleniti dicta odit voluptatem nam provident temporibus reprehenderit blanditiis consectetur tenetur. Dignissimos blanditiis quod corporis iste, aliquid perspiciatis architecto quasi tempore ipsam voluptates ea ad distinctio, sapiente qui, amet quidem culpa.');
-INSERT INTO tb_game (title, score, game_year, genre, platforms, img_url, short_description, long_description) VALUES ('Ghost of Tsushima', 4.6, 2012, 'Role-playing (RPG), Adventure', 'XBox, Playstation, PC', 'https://raw.githubusercontent.com/devsuperior/java-spring-dslist/main/resources/5.png', 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Odit esse officiis corrupti unde repellat non quibusdam! Id nihil itaque ipsum!', 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Delectus dolorum illum placeat eligendi, quis maiores veniam. Incidunt dolorum, nisi deleniti dicta odit voluptatem nam provident temporibus reprehenderit blanditiis consectetur tenetur. Dignissimos blanditiis quod corporis iste, aliquid perspiciatis architecto quasi tempore ipsam voluptates ea ad distinctio, sapiente qui, amet quidem culpa.');
-INSERT INTO tb_game (title, score, game_year, genre, platforms, img_url, short_description, long_description) VALUES ('Super Mario World', 4.7, 1990, 'Platform', 'Super Ness, PC', 'https://raw.githubusercontent.com/devsuperior/java-spring-dslist/main/resources/6.png', 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Odit esse officiis corrupti unde repellat non quibusdam! Id nihil itaque ipsum!', 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Delectus dolorum illum placeat eligendi, quis maiores veniam. Incidunt dolorum, nisi deleniti dicta odit voluptatem nam provident temporibus reprehenderit blanditiis consectetur tenetur. Dignissimos blanditiis quod corporis iste, aliquid perspiciatis architecto quasi tempore ipsam voluptates ea ad distinctio, sapiente qui, amet quidem culpa.');
-INSERT INTO tb_game (title, score, game_year, genre, platforms, img_url, short_description, long_description) VALUES ('Hollow Knight', 4.6, 2017, 'Platform', 'XBox, Playstation, PC', 'https://raw.githubusercontent.com/devsuperior/java-spring-dslist/main/resources/7.png', 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Odit esse officiis corrupti unde repellat non quibusdam! Id nihil itaque ipsum!', 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Delectus dolorum illum placeat eligendi, quis maiores veniam. Incidunt dolorum, nisi deleniti dicta odit voluptatem nam provident temporibus reprehenderit blanditiis consectetur tenetur. Dignissimos blanditiis quod corporis iste, aliquid perspiciatis architecto quasi tempore ipsam voluptates ea ad distinctio, sapiente qui, amet quidem culpa.');
-INSERT INTO tb_game (title, score, game_year, genre, platforms, img_url, short_description, long_description) VALUES ('Ori and the Blind Forest', 4, 2015, 'Platform', 'XBox, Playstation, PC', 'https://raw.githubusercontent.com/devsuperior/java-spring-dslist/main/resources/8.png', 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Odit esse officiis corrupti unde repellat non quibusdam! Id nihil itaque ipsum!', 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Delectus dolorum illum placeat eligendi, quis maiores veniam. Incidunt dolorum, nisi deleniti dicta odit voluptatem nam provident temporibus reprehenderit blanditiis consectetur tenetur. Dignissimos blanditiis quod corporis iste, aliquid perspiciatis architecto quasi tempore ipsam voluptates ea ad distinctio, sapiente qui, amet quidem culpa.');
-INSERT INTO tb_game (title, score, game_year, genre, platforms, img_url, short_description, long_description) VALUES ('Cuphead', 4.6, 2017, 'Platform', 'XBox, Playstation, PC', 'https://raw.githubusercontent.com/devsuperior/java-spring-dslist/main/resources/9.png', 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Odit esse officiis corrupti unde repellat non quibusdam! Id nihil itaque ipsum!', 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Delectus dolorum illum placeat eligendi, quis maiores veniam. Incidunt dolorum, nisi deleniti dicta odit voluptatem nam provident temporibus reprehenderit blanditiis consectetur tenetur. Dignissimos blanditiis quod corporis iste, aliquid perspiciatis architecto quasi tempore ipsam voluptates ea ad distinctio, sapiente qui, amet quidem culpa.');
-INSERT INTO tb_game (title, score, game_year, genre, platforms, img_url, short_description, long_description) VALUES ('Sonic CD', 4, 1993, 'Platform', 'Sega CD, PC', 'https://raw.githubusercontent.com/devsuperior/java-spring-dslist/main/resources/10.png', 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Odit esse officiis corrupti unde repellat non quibusdam! Id nihil itaque ipsum!', 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Delectus dolorum illum placeat eligendi, quis maiores veniam. Incidunt dolorum, nisi deleniti dicta odit voluptatem nam provident temporibus reprehenderit blanditiis consectetur tenetur. Dignissimos blanditiis quod corporis iste, aliquid perspiciatis architecto quasi tempore ipsam voluptates ea ad distinctio, sapiente qui, amet quidem culpa.');
+Project Structure
 
-INSERT INTO tb_belonging (list_id, game_id, position) VALUES (1, 1, 0);
-INSERT INTO tb_belonging (list_id, game_id, position) VALUES (1, 2, 1);
-INSERT INTO tb_belonging (list_id, game_id, position) VALUES (1, 3, 2);
-INSERT INTO tb_belonging (list_id, game_id, position) VALUES (1, 4, 3);
-INSERT INTO tb_belonging (list_id, game_id, position) VALUES (1, 5, 4);
+src/main/java: Contains the main source code of the project.
 
-INSERT INTO tb_belonging (list_id, game_id, position) VALUES (2, 6, 0);
-INSERT INTO tb_belonging (list_id, game_id, position) VALUES (2, 7, 1);
-INSERT INTO tb_belonging (list_id, game_id, position) VALUES (2, 8, 2);
-INSERT INTO tb_belonging (list_id, game_id, position) VALUES (2, 9, 3);
-INSERT INTO tb_belonging (list_id, game_id, position) VALUES (2, 10, 4);
-```
+src/main/resources: Configuration files and scripts.
+
+docker-compose.yml (if applicable): File for automating Docker services.
+
+Available Endpoints
+
+GET /games: Returns the list of games.
+
+GET /games/{id}: Returns details of a specific game.
+
+POST /games: Adds a new game.
+
+PUT /games/{id}: Updates game information.
+
+DELETE /games/{id}: Removes a game.
+
+Author
+
+Developed by Davi Aguiar da Silva.
+
+License
+
+This project is licensed under the MIT License. See the LICENSE file for more details.
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+DSList é um projeto backend desenvolvido durante o intensivo de Spring Boot do professor Nélio Alves. Este projeto tem como objetivo listar jogos, armazená-los em um banco de dados e disponibilizar uma API para consultas e manipulação de dados.
+
+Tecnologias Utilizadas
+
+Java: Linguagem principal do projeto.
+
+Spring Boot: Framework para criação de aplicações Java.
+
+PostgreSQL: Banco de dados utilizado para armazenamento.
+
+Docker: Ferramenta para conteinerização do banco de dados.
+
+Postman: Ferramenta para testes da API.
+
+Funcionalidades
+
+Listagem de jogos.
+
+Armazenamento de informações sobre jogos no banco de dados.
+
+Consulta de jogos através de endpoints REST.
+
+Organização de jogos em listas.
+
+Como Executar o Projeto
+
+Pré-requisitos
+
+Antes de iniciar, certifique-se de ter instalado em sua máquina:
+
+Java JDK 17 ou superior.
+
+Maven para gerenciamento de dependências.
+
+Docker para executar o banco de dados PostgreSQL.
+
+Postman ou outra ferramenta para testes de API (opcional).
+
+Passos para Executar
+
+Clone o repositório:
+
+git clone https://github.com/seu-usuario/dslist.git
+cd dslist
+
+Suba o banco de dados PostgreSQL usando Docker:
+
+docker run --name dslist-postgres -e POSTGRES_USER=seu_usuario -e POSTGRES_PASSWORD=sua_senha -e POSTGRES_DB=dslist -p 5432:5432 -d postgres
+
+Configure o arquivo application.properties:
+No diretório src/main/resources, configure as credenciais do PostgreSQL:
+
+spring.datasource.url=jdbc:postgresql://localhost:5432/dslist
+spring.datasource.username=seu_usuario
+spring.datasource.password=sua_senha
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+
+Compile e execute o projeto:
+
+./mvnw spring-boot:run
+
+Teste os endpoints da API:
+Utilize o Postman ou outra ferramenta para enviar requisições para os endpoints do projeto.
+
+Estrutura do Projeto
+
+src/main/java: Contém o código fonte principal do projeto.
+
+src/main/resources: Arquivos de configuração e scripts.
+
+docker-compose.yml (se aplicável): Arquivo para automação de serviços Docker.
+
+Endpoints Disponíveis
+
+GET /games: Retorna a lista de jogos.
+
+GET /games/{id}: Retorna detalhes de um jogo específico.
+
+POST /games: Adiciona um novo jogo.
+
+PUT /games/{id}: Atualiza informações de um jogo.
+
+DELETE /games/{id}: Remove um jogo.
+
+Autor
+
+Desenvolvido por Seu Nome.
+
+Licença
+
+Este projeto está licenciado sob a Licença MIT. Consulte o arquivo LICENSE para mais informações.
+
