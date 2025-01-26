@@ -135,7 +135,7 @@ Passos para Executar
 
 Clone o repositório:
 
-git clone https://github.com/seu-usuario/dslist.git
+git clone https://github.com/DaviSilvaAguiar/dslist-springboot
 cd dslist
 
 Suba o banco de dados PostgreSQL usando Docker:
